@@ -12,6 +12,23 @@ public class MovieList {
     Movies = new ArrayList<Movie>();
   }
 
+  public void tester() {
+
+    populateMovies("movies.dat");
+
+    for (int i = 0; i < Movies.size(); i++) {
+
+      System.out.println(Movies.get(i).id + " " + Movies.get(i).title + " " + Movies.get(i).genre);
+
+    }
+
+  }
+
+  public static void main(String[] args) {
+    MovieList user = new MovieList();
+    user.tester();
+  }
+
   // Reads in input file - 1 line at a time
   public static void populateMovies(String filename) {
     try {
@@ -41,9 +58,9 @@ public class MovieList {
 
 class Movie {
 
-  int id;
-  String title;
-  String genre;
+  public int id;
+  public String title;
+  public String genre;
 
   public Movie() {}
 

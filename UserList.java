@@ -12,6 +12,24 @@ public class UserList {
     Users = new ArrayList<User>();
   }
 
+  public void tester() {
+
+    populateUsers("users.dat");
+
+    for (int i = 0; i < Users.size(); i++) {
+
+      System.out.println(Users.get(i).id + " " + Users.get(i).gender + " " + Users.get(i).age + " "
+          + Users.get(i).occupation + " " + Users.get(i).zipcode);
+
+    }
+
+  }
+
+  public static void main(String[] args) {
+    UserList user = new UserList();
+    user.tester();
+  }
+
   // Reads in input file - 1 line at a time
   public static void populateUsers(String filename) {
     try {
@@ -34,7 +52,7 @@ public class UserList {
 
         temp.age = Integer.parseInt(reuseableArray[2]);
         temp.occupation = Integer.parseInt(reuseableArray[3]);
-        temp.zipcode = Integer.parseInt(reuseableArray[4]);
+        temp.zipcode = reuseableArray[4];
         Users.add(temp);
         data = file.readLine();
       }
@@ -53,7 +71,7 @@ class User {
   public Gender gender;
   public int age;
   public int occupation;
-  public int zipcode;
+  public String zipcode;
 
   // Not setting values here, so we can add other values later.
   public User() {}
