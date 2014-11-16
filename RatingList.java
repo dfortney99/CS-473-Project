@@ -14,8 +14,26 @@ public class RatingList {
     Ratings = new ArrayList<Rating>();
   }
 
+  public void tester() {
+
+    populateRatings("ratings.dat");
+
+    for (int i = 0; i < Ratings.size(); i++) {
+
+      System.out.println(Ratings.get(i).userId + " " + Ratings.get(i).movieId + " "
+          + Ratings.get(i).rating + " " + Ratings.get(i).timestamp);
+
+    }
+
+  }
+
+  public static void main(String[] args) {
+    RatingList user = new RatingList();
+    user.tester();
+  }
+
   // Reads in input file - 1 line at a time
-  public static void populateMovies(String filename) {
+  public static void populateRatings(String filename) {
     try {
       String[] reuseableArray;
       RandomAccessFile file = new RandomAccessFile(filename, "rw");
@@ -45,10 +63,10 @@ public class RatingList {
 
 class Rating {
 
-  int userId;
-  int movieId;
-  int rating;
-  int timestamp; // in Seconds
+  public int userId;
+  public int movieId;
+  public int rating;
+  public int timestamp; // in Seconds
 
   public Rating() {}
 
