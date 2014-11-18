@@ -1,7 +1,7 @@
 import java.util.*;
 import java.lang.*;
 public class SparseVector{
-  private List<IntPair> data;
+  public List<IntPair> data;
   public SparseVector(){
     data = new ArrayList<IntPair>();
   }
@@ -27,15 +27,20 @@ public class SparseVector{
   }
   
   public double distanceFrom(SparseVector sv){
+    double assumedDiff = 1.5; //The assumed difference in rating if we don't have two ratings for a movie.
     this.sortByIndex();
     sv.sortByIndex();
     double runningSum = 0;
+    double diffsCounted = 0;
     for (int i=0; i<data.size(); i++){
       double otherRating = sv.getRating(data.get(i).index);
       if (otherRating < 0) continue;
       double diff = (data.get(i).value - otherRating);
+      diffsCounted++;
       runningSum += diff * diff;
     }
+    double diffsNotCounted = MatrixBuilder.movies.Movies.size()-diffsCounted;
+    runningSum += assumedDiff*assumedDiff*diffsNotCounted;
     return Math.sqrt(runningSum);
   }
   
