@@ -1,4 +1,8 @@
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 
@@ -16,7 +20,7 @@ public class RatingList {
 
   public void tester() {
 
-    populateRatings("ratings.dat");
+    // populateRatings("ratings.dat");
 
     for (int i = 0; i < Ratings.size(); i++) {
 
@@ -29,7 +33,42 @@ public class RatingList {
 
   public static void main(String[] args) {
     RatingList user = new RatingList();
+
+    populateRatings("ratings.dat");
+    user.saveRatingList();
+    Ratings.clear();
+    user.loadRatingList();
+
     user.tester();
+  }
+
+  public void saveRatingList() {
+    try {
+      FileOutputStream fileOut = new FileOutputStream("/tmp/ratingList.ser");
+      ObjectOutputStream out = new ObjectOutputStream(fileOut);
+      out.writeObject(Ratings);
+      out.close();
+      fileOut.close();
+    } catch (IOException i) {
+      i.printStackTrace();
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  public void loadRatingList() {
+    try {
+      FileInputStream fileIn = new FileInputStream("/tmp/ratingList.ser");
+      ObjectInputStream in = new ObjectInputStream(fileIn);
+      Ratings = (ArrayList<Rating>) in.readObject();
+      in.close();
+      fileIn.close();
+    } catch (IOException i) {
+      i.printStackTrace();
+      return;
+    } catch (ClassNotFoundException c) {
+      c.printStackTrace();
+      return;
+    }
   }
 
   // Reads in input file - 1 line at a time
@@ -61,7 +100,8 @@ public class RatingList {
 }
 
 
-class Rating {
+class Rating implements java.io.Serializable {
+  private static final long serialVersionUID = 1L;
 
   public int userId;
   public int movieId;

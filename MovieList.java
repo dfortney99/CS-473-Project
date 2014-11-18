@@ -1,4 +1,8 @@
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 
@@ -14,7 +18,7 @@ public class MovieList {
 
   public void tester() {
 
-    populateMovies("movies.dat");
+    // populateMovies("movies.dat");
 
     for (int i = 0; i < Movies.size(); i++) {
 
@@ -26,7 +30,43 @@ public class MovieList {
 
   public static void main(String[] args) {
     MovieList user = new MovieList();
+
+    populateMovies("movies.dat");
+    user.saveMovieList();
+    Movies.clear();
+    user.loadMovieList();
+
     user.tester();
+  }
+
+
+  public void saveMovieList() {
+    try {
+      FileOutputStream fileOut = new FileOutputStream("/tmp/movieList.ser");
+      ObjectOutputStream out = new ObjectOutputStream(fileOut);
+      out.writeObject(Movies);
+      out.close();
+      fileOut.close();
+    } catch (IOException i) {
+      i.printStackTrace();
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  public void loadMovieList() {
+    try {
+      FileInputStream fileIn = new FileInputStream("/tmp/movieList.ser");
+      ObjectInputStream in = new ObjectInputStream(fileIn);
+      Movies = (ArrayList<Movie>) in.readObject();
+      in.close();
+      fileIn.close();
+    } catch (IOException i) {
+      i.printStackTrace();
+      return;
+    } catch (ClassNotFoundException c) {
+      c.printStackTrace();
+      return;
+    }
   }
 
   // Reads in input file - 1 line at a time
@@ -56,7 +96,8 @@ public class MovieList {
 }
 
 
-class Movie {
+class Movie implements java.io.Serializable {
+  private static final long serialVersionUID = 1L;
 
   public int id;
   public String title;
