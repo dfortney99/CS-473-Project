@@ -1,4 +1,8 @@
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 
@@ -14,7 +18,7 @@ public class UserList {
 
   public void tester() {
 
-    populateUsers("users.dat");
+    // populateUsers("users.dat");
 
     for (int i = 0; i < Users.size(); i++) {
 
@@ -27,8 +31,43 @@ public class UserList {
 
   public static void main(String[] args) {
     UserList user = new UserList();
+    populateUsers("users.dat");
+    user.saveUserList();
+    Users.clear();
+    user.loadUserList();
+
     user.tester();
   }
+
+  public void saveUserList() {
+    try {
+      FileOutputStream fileOut = new FileOutputStream("/tmp/userList.ser");
+      ObjectOutputStream out = new ObjectOutputStream(fileOut);
+      out.writeObject(Users);
+      out.close();
+      fileOut.close();
+    } catch (IOException i) {
+      i.printStackTrace();
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  public void loadUserList() {
+    try {
+      FileInputStream fileIn = new FileInputStream("/tmp/userList.ser");
+      ObjectInputStream in = new ObjectInputStream(fileIn);
+      Users = (ArrayList<User>) in.readObject();
+      in.close();
+      fileIn.close();
+    } catch (IOException i) {
+      i.printStackTrace();
+      return;
+    } catch (ClassNotFoundException c) {
+      c.printStackTrace();
+      return;
+    }
+  }
+
 
   // Reads in input file - 1 line at a time
   public static void populateUsers(String filename) {
@@ -65,7 +104,8 @@ public class UserList {
 }
 
 
-class User {
+class User implements java.io.Serializable {
+  private static final long serialVersionUID = 1L;
   // Everything public for simplicity.
   public int id;
   public Gender gender;
