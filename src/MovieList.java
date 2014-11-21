@@ -43,7 +43,7 @@ public class MovieList {
 
   public void saveMovieList() {
     try {
-      FileOutputStream fileOut = new FileOutputStream("/tmp/movieList.ser");
+      FileOutputStream fileOut = new FileOutputStream("tmp/movieList.ser");
       ObjectOutputStream out = new ObjectOutputStream(fileOut);
       out.writeObject(Movies);
       out.close();
@@ -56,7 +56,7 @@ public class MovieList {
   @SuppressWarnings("unchecked")
   public void loadMovieList() {
     try {
-      FileInputStream fileIn = new FileInputStream("/tmp/movieList.ser");
+      FileInputStream fileIn = new FileInputStream("tmp/movieList.ser");
       ObjectInputStream in = new ObjectInputStream(fileIn);
       Movies = (ArrayList<Movie>) in.readObject();
       in.close();
@@ -72,7 +72,7 @@ public class MovieList {
 
   // Reads in input file - 1 line at a time
   public static void populateMovies(String filename) {
-	LastId = 0;
+ LastId = 0;
     try {
       String[] reuseableArray;
       RandomAccessFile file = new RandomAccessFile(filename, "rw");
@@ -84,20 +84,20 @@ public class MovieList {
         reuseableArray = data.split("::");
 
         Movie temp = new Movie();
-		LastId++;
+  LastId++;
         temp.id = Integer.parseInt(reuseableArray[0]);
-	
-		while(LastId != temp.id){
-			
-			Movie padding = new Movie();
-			padding.id = -1;
-			padding.title = "";
-			padding.genre = "";
-			
-			Movies.add(padding);
-			
-			LastId++;
-		}
+ 
+  while(LastId != temp.id){
+   
+   Movie padding = new Movie();
+   padding.id = -1;
+   padding.title = "";
+   padding.genre = "";
+   
+   Movies.add(padding);
+   
+   LastId++;
+  }
 
         temp.title = reuseableArray[1];
         temp.genre = reuseableArray[2];
