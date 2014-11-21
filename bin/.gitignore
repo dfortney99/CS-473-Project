@@ -1,0 +1,20 @@
+/.DS_Store
+/Gender.class
+/IntPair.class
+/MatrixBuilder.class
+/Movie.class
+/MovieList.class
+/Rating.class
+/RatingList.class
+/SparseVector.class
+/TestRun.class
+/User.class
+/UserList.class
+/movies.dat
+/ratings.dat
+/users.dat
+/README.md
+/README
+/Copy of README
+/NearestMovies.class
+/AverageMovieRating.class

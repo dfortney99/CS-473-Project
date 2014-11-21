@@ -11,6 +11,7 @@ public class MovieList {
   // MovieID::Title::Genres
 
   public static ArrayList<Movie> Movies;
+  public static int LastId;
 
   public MovieList() {
     Movies = new ArrayList<Movie>();
@@ -71,6 +72,7 @@ public class MovieList {
 
   // Reads in input file - 1 line at a time
   public static void populateMovies(String filename) {
+	LastId = 0;
     try {
       String[] reuseableArray;
       RandomAccessFile file = new RandomAccessFile(filename, "rw");
@@ -82,7 +84,21 @@ public class MovieList {
         reuseableArray = data.split("::");
 
         Movie temp = new Movie();
+		LastId++;
         temp.id = Integer.parseInt(reuseableArray[0]);
+	
+		while(LastId != temp.id){
+			
+			Movie padding = new Movie();
+			padding.id = -1;
+			padding.title = "";
+			padding.genre = "";
+			
+			Movies.add(padding);
+			
+			LastId++;
+		}
+
         temp.title = reuseableArray[1];
         temp.genre = reuseableArray[2];
         Movies.add(temp);
