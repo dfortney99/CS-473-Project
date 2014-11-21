@@ -13,6 +13,10 @@ public class SparseVector {
   public void addRating(int index, double value) {
     data.add(new IntPair(index, value));
   }
+  
+  public void removeRating(int index){
+    data.remove(index);
+  }
 
   // If for some reason the ratings are not added in order of index, call this function.
   public void sortByIndex() {
