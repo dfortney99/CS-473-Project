@@ -43,7 +43,7 @@ public class MovieList {
 
   public void saveMovieList() {
     try {
-      FileOutputStream fileOut = new FileOutputStream("tmp/movieList.ser");
+      FileOutputStream fileOut = new FileOutputStream("movieList.ser");
       ObjectOutputStream out = new ObjectOutputStream(fileOut);
       out.writeObject(Movies);
       out.close();
@@ -56,7 +56,7 @@ public class MovieList {
   @SuppressWarnings("unchecked")
   public void loadMovieList() {
     try {
-      FileInputStream fileIn = new FileInputStream("tmp/movieList.ser");
+      FileInputStream fileIn = new FileInputStream("movieList.ser");
       ObjectInputStream in = new ObjectInputStream(fileIn);
       Movies = (ArrayList<Movie>) in.readObject();
       in.close();

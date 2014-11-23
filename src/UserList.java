@@ -41,7 +41,7 @@ public class UserList {
 
   public void saveUserList() {
     try {
-      FileOutputStream fileOut = new FileOutputStream("tmp/userList.ser");
+      FileOutputStream fileOut = new FileOutputStream("userList.ser");
       ObjectOutputStream out = new ObjectOutputStream(fileOut);
       out.writeObject(Users);
       out.close();
@@ -54,7 +54,7 @@ public class UserList {
   @SuppressWarnings("unchecked")
   public void loadUserList() {
     try {
-      FileInputStream fileIn = new FileInputStream("tmp/userList.ser");
+      FileInputStream fileIn = new FileInputStream("userList.ser");
       ObjectInputStream in = new ObjectInputStream(fileIn);
       Users = (ArrayList<User>) in.readObject();
       in.close();
