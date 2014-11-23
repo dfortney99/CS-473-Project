@@ -44,7 +44,7 @@ public class RatingList {
 
   public void saveRatingList() {
     try {
-      FileOutputStream fileOut = new FileOutputStream("tmp/ratingList.ser");
+      FileOutputStream fileOut = new FileOutputStream("ratingList.ser");
       ObjectOutputStream out = new ObjectOutputStream(fileOut);
       out.writeObject(Ratings);
       out.close();
@@ -57,7 +57,7 @@ public class RatingList {
   @SuppressWarnings("unchecked")
   public void loadRatingList() {
     try {
-      FileInputStream fileIn = new FileInputStream("tmp/ratingList.ser");
+      FileInputStream fileIn = new FileInputStream("ratingList.ser");
       ObjectInputStream in = new ObjectInputStream(fileIn);
       Ratings = (ArrayList<Rating>) in.readObject();
       in.close();
