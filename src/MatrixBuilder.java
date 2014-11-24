@@ -18,6 +18,9 @@ public class MatrixBuilder {
     evaluation(1782, 20, 30);    
     evaluation(2189, 20, 30);
     evaluation(1655, 20, 30);
+    noveltyEvaluation(1782, 20, 30);    
+    noveltyEvaluation(2189, 20, 30);
+    noveltyEvaluation(1655, 20, 30);
   } 
   
   public static void initializeObjects(){
@@ -161,7 +164,7 @@ public class MatrixBuilder {
     }
     for (int i=0; i<userVector.data.size(); i++){
       if (userVector.data.get(i).value < 3.5) {
-        System.out.println("Movie "+userVector.data.get(i).index+" ignored. Rating "+userVector.data.get(i).value);
+        //System.out.println("Movie "+userVector.data.get(i).index+" ignored. Rating "+userVector.data.get(i).value);
         continue; //If the user rated the movie less than 3.5, ignore it.
       }
       double runningScore = 0; //the running novelty score (the sum of the distances from our 10 base movie vectors)
@@ -171,7 +174,7 @@ public class MatrixBuilder {
         runningScore+=score;
       }
       noveltyScores.addRating(userVector.data.get(i).index, runningScore/comparisonBase.size());
-      System.out.println("Movie "+userVector.data.get(i).index+" got a score of "+runningScore/comparisonBase.size()+". Rating "+userVector.data.get(i).value);
+      //System.out.println("Movie "+userVector.data.get(i).index+" got a score of "+runningScore/comparisonBase.size()+". Rating "+userVector.data.get(i).value);
     }
     
     //Select the n most novel movies, and for each one, select n movies similar to those as candidates for recommendation.
@@ -225,6 +228,106 @@ public class MatrixBuilder {
       if (finalResult.size() == max) break;
     }
     return finalResult;
+  }
+  
+  public static void noveltyEvaluation(int user, int k, int max) {
+    int t = 0; //For evaluation, we'll ignore all ratings that occurred after t.
+    colMatrix = new ArrayList<SparseVector>(); //The movie vectors for this round of evaluation.
+    rowMatrix = new ArrayList<SparseVector>(); //The user vectors for this round of evaluation.
+    
+    int highestMovie = movies.Movies.get(movies.Movies.size()-1).id; 
+    int prevUser = -1;
+    rowMatrix.add(new SparseVector()); //It's just easier if we add a blank vector at index 0, so the user id matches his index
+    
+    //To pick t, we just take the first rating in the list for the given user and use its timestamp.
+    for (int i=0; i<RatingList.Ratings.size(); i++){
+      Rating r = RatingList.Ratings.get(i);
+      if(r.userId == user){
+        t = r.timestamp;
+        break;
+      }
+    }
+
+    //Construct colMatrix and rowMatrix, ignoring ratings after t. Also store the user's ratings after t in postTVector.
+    SparseVector postTVector = new SparseVector(); //The user's ratings after t
+    for (int i=0; i<RatingList.Ratings.size(); i++){
+      Rating r = RatingList.Ratings.get(i);
+      if (r.userId != prevUser){
+        prevUser = r.userId;
+        rowMatrix.add(new SparseVector());
+      }
+      if (r.timestamp < t){        
+        rowMatrix.get(rowMatrix.size()-1).addRating(r.movieId, r.rating);
+      }
+      if (r.userId == user && r.timestamp >= t){
+        postTVector.addRating(r.movieId, r.rating);
+      }
+    }
+    
+    if (rowMatrix.get(user).data.size()<max/4){
+      System.out.println("Too few ratings before t for novelty evaluation. Aborting.");
+      return;
+    }
+    
+    //We also need to remove max/4 elements. These simulate items the user is familiar with but has not rated. We will
+    //lose points for recommending any of the removed items.
+    List<Integer> badMovies = getRandomMovieSubset(max/4, user);
+    for (int i=0; i<rowMatrix.get(user).data.size(); i++){
+      for (int j=0; j<badMovies.size(); j++){
+        if (rowMatrix.get(user).data.get(i).index == badMovies.get(j)){
+          rowMatrix.get(user).data.remove(i);
+        }
+      }
+    }
+    System.out.println("Row matrix construction complete");
+    System.out.println("Selected t-value leaves user with "+postTVector.data.size()+" ratings after t and "+rowMatrix.get(user).data.size()+" ratings before t");
+    System.out.println("Movies rated after t");
+    for (int i=0; i<postTVector.data.size(); i++){
+      System.out.println(postTVector.data.get(i).index);
+    }
+    for (int i=0; i<=highestMovie; i++){
+      colMatrix.add(new SparseVector());
+    }
+    for (int i=0; i<RatingList.Ratings.size(); i++){
+      Rating r = RatingList.Ratings.get(i);
+      if (r.timestamp < t){
+        colMatrix.get(r.movieId).addRating(r.userId, r.rating);
+      }
+    }
+    for (int i=0; i<badMovies.size(); i++){
+      colMatrix.get(badMovies.get(i)).data.clear();
+    }
+    for (int i=0; i<colMatrix.size(); i++){
+      colMatrix.get(i).sortByIndex();
+    }
+    System.out.println("Column matrix construction complete");
+    
+    //Get the recommendations.
+    List<Integer> recommendations = calculateRecommendations(user, k, max);
+    
+    //Perform the core evaluation. For each recommendation, we lose a point if it appears in the bad movies list. We get
+    //x-2.5 points if the user rated it a value of x after t. Then we divide the sum by # of recommendations.
+    double runningNoveltyScore = 0;
+    for (int i=0; i<recommendations.size(); i++){
+      for (int j=0; j<postTVector.data.size(); j++){
+        if (postTVector.data.get(j).index == (int)recommendations.get(i)){
+          System.out.println("Found a match. Rating "+postTVector.data.get(j).value);
+          runningNoveltyScore+=(postTVector.data.get(j).value - 2.5);
+          break;
+        }
+      }
+    }
+    for (int i=0; i<recommendations.size(); i++){
+      for (int j=0; j<badMovies.size(); j++){
+        if (recommendations.get(i) == badMovies.get(j)){
+          System.out.println("Already known movie recommended. Lose a point.");
+          runningNoveltyScore-=1;
+          break;
+        }
+      }
+    }
+    double avgNoveltyScore = runningNoveltyScore/recommendations.size();
+    System.out.println("Novelty evaluation score for user "+user+" using k = "+k+" with "+max+" recommendations is "+avgNoveltyScore+".");
   }
 
 
