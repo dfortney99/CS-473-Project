@@ -13,15 +13,15 @@ public class MatrixBuilder {
   public static RatingList ratings; //List of ratings
 
   public static void main(String []args){
-    calculateRecommendations(1, 20, 30);
-    //calculateRecommendations(1, 10, 10);
-    //evaluation(1, 10, 10);
- 
+    initializeObjects();
+    //List<Integer> result = calculateRecommendations(1, 20, 30);
+    evaluation(1782, 20, 30);    
+    evaluation(2189, 20, 30);
+    evaluation(1655, 20, 30);
   } 
-
-
-  public static void calculateRecommendations(int user, int k, int max) {    
-    // Initialize the list objects. When finished populating objects, comment the populate and save functions out.
+  
+  public static void initializeObjects(){
+    // Initialize the list objects. When finished populating objects, we can comment the populate and save functions out.
     colMatrix = new ArrayList<SparseVector>();
     rowMatrix = new ArrayList<SparseVector>();
     baseColMatrix = new ArrayList<SparseVector>();
@@ -72,6 +72,11 @@ public class MatrixBuilder {
       baseColMatrix.get(i).sortByIndex();
     }
     System.out.println("Column matrix construction complete");
+  }
+
+  //Comes up with (max) recommendations for the user with id (user), using the current values of colMatrix and rowMatrix
+  //and using a value of (k) to find the k nearest users and k nearest movies.
+  public static List<Integer> calculateRecommendations(int user, int k, int max) {  
     
     //Perform k nearest user recommendation.
     List<Integer> neighbors = getKNearestUsers(k, user); //the id's of the k nearest users to user 
@@ -169,7 +174,7 @@ public class MatrixBuilder {
       System.out.println("Movie "+userVector.data.get(i).index+" got a score of "+runningScore/comparisonBase.size()+". Rating "+userVector.data.get(i).value);
     }
     
-    //Select the n most novel movies, and for each one, select three movies similar to those as candidates for recommendation.
+    //Select the n most novel movies, and for each one, select n movies similar to those as candidates for recommendation.
     int n = ((Double)(Math.ceil(Math.sqrt(max)))).intValue(); //Assumes max < 100. If max > 100, we'll want to do this differently.
     List<IntPair> noveltyBases = new ArrayList<IntPair>(); //the three most novel movies we're using as bases for recommendation
     for (int i=0; i<noveltyScores.data.size(); i++){
@@ -177,13 +182,17 @@ public class MatrixBuilder {
       if (noveltyBases.size()==0){
         noveltyBases.add(current);
       }else{
-        for (int j=0; j<noveltyBases.size(); j++){        
-          if (current.value > noveltyBases.get(j).value){
-            noveltyBases.add(j, current);
-            if (noveltyBases.size()>n){
-              noveltyBases.remove(noveltyBases.size()-1);
+        if (noveltyBases.size() < n && current.value < noveltyBases.get(noveltyBases.size()-1).value){
+          noveltyBases.add(current);
+        }else{
+          for (int j=0; j<noveltyBases.size(); j++){        
+            if (current.value > noveltyBases.get(j).value){
+              noveltyBases.add(j, current);
+              if (noveltyBases.size()>n){
+                noveltyBases.remove(noveltyBases.size()-1);
+              }
+              break;
             }
-            break;
           }
         }
       }
@@ -215,153 +224,81 @@ public class MatrixBuilder {
       finalResult.add(coreResult.get(i).id);
       if (finalResult.size() == max) break;
     }
+    return finalResult;
   }
 
 
-  /*public static void evaluation(int User, int k, int max) {
- int t = 0;
-    colMatrix = new ArrayList<SparseVector>();
-    rowMatrix = new ArrayList<SparseVector>();
-    movies = new MovieList();
-
-    movies.loadMovieList();
-    users = new UserList();
-    users.loadUserList();
-
-    ratings = new RatingList();
-    ratings.loadRatingList();
-
-    System.out.println("Parsing complete");
+  public static void evaluation(int user, int k, int max) {
+    int t = 0; //For evaluation, we'll ignore all ratings that occurred after t.
+    colMatrix = new ArrayList<SparseVector>(); //The movie vectors for this round of evaluation.
+    rowMatrix = new ArrayList<SparseVector>(); //The user vectors for this round of evaluation.
+    
     int highestMovie = movies.Movies.get(movies.Movies.size()-1).id; 
     int prevUser = -1;
     rowMatrix.add(new SparseVector()); //It's just easier if we add a blank vector at index 0, so the user id matches his index
-
- for (int i=0; i<RatingList.Ratings.size(); i++){
+    
+    //To pick t, we just take the first rating in the list for the given user and use its timestamp.
+    for (int i=0; i<RatingList.Ratings.size(); i++){
       Rating r = RatingList.Ratings.get(i);
-  if(r.userId == User){
-   t = r.timestamp;
-  }
-  }
+      if(r.userId == user){
+        t = r.timestamp;
+        break;
+      }
+    }
 
-
+    //Construct colMatrix and rowMatrix, ignoring ratings after t. Also store the user's ratings after t in postTVector.
+    SparseVector postTVector = new SparseVector(); //The user's ratings after t
     for (int i=0; i<RatingList.Ratings.size(); i++){
       Rating r = RatingList.Ratings.get(i);
       if (r.userId != prevUser){
         prevUser = r.userId;
         rowMatrix.add(new SparseVector());
       }
-   if(r.timestamp < t){
-  
+      if (r.timestamp < t){        
         rowMatrix.get(rowMatrix.size()-1).addRating(r.movieId, r.rating);
-  }
+      }
+      if (r.userId == user && r.timestamp >= t){
+        postTVector.addRating(r.movieId, r.rating);
+      }
     }
     System.out.println("Row matrix construction complete");
+    System.out.println("Selected t-value leaves user with "+postTVector.data.size()+" ratings after t and "+rowMatrix.get(user).data.size()+" ratings before t");
+    System.out.println("Movies rated after t");
+    for (int i=0; i<postTVector.data.size(); i++){
+      System.out.println(postTVector.data.get(i).index);
+    }
     for (int i=0; i<=highestMovie; i++){
       colMatrix.add(new SparseVector());
     }
-    System.out.println("Column matrix initialization complete");
     for (int i=0; i<RatingList.Ratings.size(); i++){
       Rating r = RatingList.Ratings.get(i);
-      colMatrix.get(r.movieId).addRating(r.userId, r.rating);
+      if (r.timestamp < t){
+        colMatrix.get(r.movieId).addRating(r.userId, r.rating);
+      }
     }
-    System.out.println("Unstructured column matrix complete");
     for (int i=0; i<colMatrix.size(); i++){
       colMatrix.get(i).sortByIndex();
     }
-    System.out.println("Full column matrix complete");
+    System.out.println("Column matrix construction complete");
     
-    List<Integer> neighbors = getKNearestUsers(k, User);
+    //Get the recommendations.
+    List<Integer> recommendations = calculateRecommendations(user, k, max);
     
-    
-    for (int i = 0; i < neighbors.size(); i++) {
-      SparseVector sv = rowMatrix.get(neighbors.get(i));
-      for (int j = 0; j < sv.data.size(); j++) {
-        int temp = containsId(ratedMovies, sv.data.get(j).index -1) ;
-        if(temp != -1){
-          ratedMovies.get(temp).total += sv.data.get(j).value;
-          ratedMovies.get(temp).number_rated++;
-        }
-        else
-        {
-          AverageMovieRating newRating = new AverageMovieRating();
-          newRating.id = sv.data.get(j).index - 1;
-          newRating.total = sv.data.get(j).value;
-          newRating.number_rated = 1;
-          ratedMovies.add(newRating);
-        }         
-      }
-    }
-    Collections.sort(ratedMovies, new Comparator<AverageMovieRating>(){
-      public int compare(AverageMovieRating s1, AverageMovieRating s2){
-        if((s1.total / s1.number_rated) > (s2.total / s2.number_rated)){
-          return -1;
-        }
-        else if ((s1.total / s1.number_rated) == (s2.total / s2.number_rated)) {
-          return 0;
-        }  
-        else{
-          return 1;
-        }  
-      }
-    });
-    
-    for(int w = 0; w < ratedMovies.size(); w++){
-      System.out.println(movies.Movies.get(ratedMovies.get(w).id).title + " " + ratedMovies.get(w).total /    ratedMovies.get(w).number_rated);
-    }
-    
-    //Find novel movie recommendations for user 1.
-    System.out.println("Movies rated by user " + User);
-    SparseVector user = rowMatrix.get(User);
-    for (int i=0; i<user.data.size(); i++){
-      System.out.println(user.data.get(i).index);
-    }
-    SparseVector noveltyScores = new SparseVector();
-    List<Integer> comparisonBase = getRandomMovieSubset(10, 1);
-    for (int i=0; i<comparisonBase.size(); i++){
-      System.out.println("Base: Movie "+comparisonBase.get(i));
-    }
-    for (int i=0; i<user.data.size(); i++){
-      if (user.data.get(i).value < 3.5) {
-        System.out.println("Movie "+user.data.get(i).index+" ignored. Rating "+user.data.get(i).value);
-        continue; //If the user rated the movie less than 3.5, ignore it.
-      }
-      double runningScore = 0;
-      SparseVector baseMovie = colMatrix.get(user.data.get(i).index);
-      for (int j=0; j<comparisonBase.size(); j++){        
-        double score = baseMovie.distanceFrom(colMatrix.get(comparisonBase.get(j)));
-        runningScore+=score;
-      }
-      noveltyScores.addRating(user.data.get(i).index, runningScore/comparisonBase.size());
-      System.out.println("Movie "+user.data.get(i).index+" got a score of "+runningScore/comparisonBase.size()+". Rating "+user.data.get(i).value);
-    }
-    List<IntPair> recommendedMovies = new ArrayList<IntPair>();
-    for (int i=0; i<noveltyScores.data.size(); i++){
-      IntPair current = noveltyScores.data.get(i);
-      if (recommendedMovies.size()==0){
-        recommendedMovies.add(current);
-      }else{
-        for (int j=0; j<recommendedMovies.size(); j++){        
-          if (current.value > recommendedMovies.get(j).value){
-            recommendedMovies.add(j, current);
-            if (recommendedMovies.size()>max){
-              recommendedMovies.remove(recommendedMovies.size()-1);
-            }
-            break;
-          }
+    //Perform the core evaluation. For each recommendation, we get 0 points if the user didn't rate it after t. We get
+    //x-2.5 points if the user rated it a value of x after t. Then we divide the sum by # of recommendations.
+    double runningCoreScore = 0;
+    for (int i=0; i<recommendations.size(); i++){
+      for (int j=0; j<postTVector.data.size(); j++){
+        if (postTVector.data.get(j).index == (int)recommendations.get(i)){
+          System.out.println("Found a match. Rating "+postTVector.data.get(j).value);
+          runningCoreScore+=(postTVector.data.get(j).value - 2.5);
+          break;
         }
       }
     }
-    for (int i=0; i<recommendedMovies.size(); i++){
-      System.out.println("Selected movie "+recommendedMovies.get(i).index);
-    }
-    for (int i=0; i<3; i++){
-      List<Integer> recommendations = getKNearestMovies(3, recommendedMovies.get(i).index);
-      for (int j=0; j<recommendations.size(); j++){
-        System.out.println("Recommended because of "+recommendedMovies.get(i).index+": "+recommendations.get(j));
-      }
-    }
-    
-  }*/
+    double avgCoreScore = runningCoreScore/recommendations.size();
+    System.out.println("Core evaluation score for user "+user+" using k = "+k+" with "+max+" recommendations is "+avgCoreScore+".");
+  }
 
   public static int containsId(List<AverageMovieRating> list, long id) {
     int list_id = 0;
