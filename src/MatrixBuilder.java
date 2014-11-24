@@ -12,8 +12,10 @@ public class MatrixBuilder {
   public static UserList users; //List of user id's
   public static RatingList ratings; //List of ratings
   public static double total_score;
+  public static double total_generous_score;
   public static double novelty_total_score;
   public static int novelty_skip;
+  public static int generous_skip;
   public static int number_ran;
 
 
@@ -21,8 +23,9 @@ public class MatrixBuilder {
     initializeObjects();
     //List<Integer> result = calculateRecommendations(1, 20, 30);
  
- number_ran = 10;
+ number_ran = 5;
  novelty_skip = 0;
+ generous_skip = 0;
  
  for(int i = 1; i-1 < number_ran; i++){
    System.out.println(" Testing User " + i*13*7);
@@ -35,6 +38,7 @@ public class MatrixBuilder {
  }
  System.out.println("--RESULTS--");
  System.out.println("Average Score: " + total_score / number_ran + " on " + number_ran + " Documents.");
+ System.out.println("Average Generous Score: " + (total_generous_score/number_ran) + " on " + number_ran + " Documents. "+generous_skip+" of those documents don't count because there were no hits.");
  System.out.println("Average Novelty Score: " + (novelty_total_score / number_ran) + " on " + number_ran + " Documents. Skips " + novelty_skip);
 
   } 
@@ -293,8 +297,8 @@ public class MatrixBuilder {
     List<Integer> badMovies = getRandomMovieSubset(max/4, user);
     for (int i=0; i<rowMatrix.get(user).data.size(); i++){
       for (int j=0; j<badMovies.size(); j++){
-  if(j >= badMovies.size() || i >= rowMatrix.get(user).data.size())
-   break;
+        if(j >= badMovies.size() || i >= rowMatrix.get(user).data.size())
+          break;
         if (rowMatrix.get(user).data.get(i).index == badMovies.get(j)){
           rowMatrix.get(user).data.remove(i);
         }
@@ -349,7 +353,7 @@ public class MatrixBuilder {
     }
     double avgNoveltyScore = runningNoveltyScore/recommendations.size();
     System.out.println("Novelty evaluation score for user "+user+" using k = "+k+" with "+max+" recommendations is "+avgNoveltyScore+".");
- novelty_total_score += avgNoveltyScore;
+    novelty_total_score += avgNoveltyScore;
   }
 
 
@@ -428,6 +432,11 @@ public class MatrixBuilder {
     System.out.println("Core evaluation score for user "+user+" using k = "+k+" with "+max+" recommendations is "+avgCoreScore+".");
     System.out.println("Generous evaluation score for user "+user+" using k = "+k+" with "+max+" recommendations is "+avgGenerousScore+".");
     total_score += avgCoreScore;
+    if (hitCount == 0){
+      generous_skip++;
+    }else{
+      total_generous_score += avgGenerousScore;
+    }
   }
 
   public static int containsId(List<AverageMovieRating> list, long id) {
