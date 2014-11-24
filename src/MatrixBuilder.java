@@ -39,7 +39,7 @@ public class MatrixBuilder {
  System.out.println("--RESULTS--");
  System.out.println("Average Score: " + total_score / number_ran + " on " + number_ran + " Documents.");
  System.out.println("Average Generous Score: " + (total_generous_score/(number_ran-generous_skip)) + " on " + number_ran + " Documents. "+generous_skip+" of those documents don't count because there were no hits.");
- System.out.println("Average Novelty Score: " + (novelty_total_score / number_ran) + " on " + number_ran + " Documents. Skips " + novelty_skip);
+ System.out.println("Average Novelty Score: " + (novelty_total_score / (number_ran-novelty_skip)) + " on " + number_ran + " Documents. Skips " + novelty_skip);
 
   } 
   
