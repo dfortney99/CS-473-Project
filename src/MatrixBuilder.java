@@ -20,22 +20,22 @@ public class MatrixBuilder {
   public static void main(String []args){
     initializeObjects();
     //List<Integer> result = calculateRecommendations(1, 20, 30);
-	
-	number_ran = 10;
-	novelty_skip = 0;
-	
-	for(int i = 1; i-1 < number_ran; i++){
-		 System.out.println("	Testing User " + i*13*7);
-		System.out.println("--Core Evaluation--");
+ 
+ number_ran = 10;
+ novelty_skip = 0;
+ 
+ for(int i = 1; i-1 < number_ran; i++){
+   System.out.println(" Testing User " + i*13*7);
+  System.out.println("--Core Evaluation--");
 
-		 evaluation(i*13*7, 20, 30);
-		System.out.println("--Novelty Evaluation--");
+   evaluation(i*13*7, 20, 30);
+  System.out.println("--Novelty Evaluation--");
 
-		 noveltyEvaluation(i*13*7, 20, 30);   
-	}
-	System.out.println("--RESULTS--");
-	System.out.println("Average Score: " + total_score / number_ran + " on " + number_ran + " Documents.");
-	System.out.println("Average Novelty Score: " + (novelty_total_score / number_ran) + " on " + number_ran + " Documents. Skips " + novelty_skip);
+   noveltyEvaluation(i*13*7, 20, 30);   
+ }
+ System.out.println("--RESULTS--");
+ System.out.println("Average Score: " + total_score / number_ran + " on " + number_ran + " Documents.");
+ System.out.println("Average Novelty Score: " + (novelty_total_score / number_ran) + " on " + number_ran + " Documents. Skips " + novelty_skip);
 
   } 
   
@@ -218,8 +218,8 @@ public class MatrixBuilder {
     }    
     List<Integer> novelResult = new ArrayList<Integer>();
     for (int i=0; i<n; i++){
-	  if(i >= noveltyBases.size())
-		break;
+   if(i >= noveltyBases.size())
+  break;
       List<Integer> novelSubResult = getKNearestMovies(n, noveltyBases.get(i).index); //the n candidate recommendations derived from this movie (i.e. the n nearest movies)
       for (int j=0; j<novelSubResult.size(); j++){
         novelResult.add(novelSubResult.get(j));
@@ -283,7 +283,7 @@ public class MatrixBuilder {
     }
     
     if (rowMatrix.get(user).data.size()<max/4){
-	  novelty_skip++;
+   novelty_skip++;
       System.out.println("Too few ratings before t for novelty evaluation. Aborting.");
       return;
     }
@@ -293,8 +293,8 @@ public class MatrixBuilder {
     List<Integer> badMovies = getRandomMovieSubset(max/4, user);
     for (int i=0; i<rowMatrix.get(user).data.size(); i++){
       for (int j=0; j<badMovies.size(); j++){
-		if(j >= badMovies.size() || i >= rowMatrix.get(user).data.size())
-			break;
+  if(j >= badMovies.size() || i >= rowMatrix.get(user).data.size())
+   break;
         if (rowMatrix.get(user).data.get(i).index == badMovies.get(j)){
           rowMatrix.get(user).data.remove(i);
         }
@@ -349,7 +349,7 @@ public class MatrixBuilder {
     }
     double avgNoveltyScore = runningNoveltyScore/recommendations.size();
     System.out.println("Novelty evaluation score for user "+user+" using k = "+k+" with "+max+" recommendations is "+avgNoveltyScore+".");
-	novelty_total_score += avgNoveltyScore;
+ novelty_total_score += avgNoveltyScore;
   }
 
 
@@ -412,18 +412,22 @@ public class MatrixBuilder {
     //Perform the core evaluation. For each recommendation, we get 0 points if the user didn't rate it after t. We get
     //x-2.5 points if the user rated it a value of x after t. Then we divide the sum by # of recommendations.
     double runningCoreScore = 0;
+    int hitCount = 0;
     for (int i=0; i<recommendations.size(); i++){
       for (int j=0; j<postTVector.data.size(); j++){
         if (postTVector.data.get(j).index == (int)recommendations.get(i)){
          // System.out.println("Found a match. Rating "+postTVector.data.get(j).value);
+          hitCount++;
           runningCoreScore+=(postTVector.data.get(j).value - 2.5);
           break;
         }
       }
     }
     double avgCoreScore = runningCoreScore/recommendations.size();
+    double avgGenerousScore = runningCoreScore/hitCount;
     System.out.println("Core evaluation score for user "+user+" using k = "+k+" with "+max+" recommendations is "+avgCoreScore+".");
-	total_score += avgCoreScore;
+    System.out.println("Generous evaluation score for user "+user+" using k = "+k+" with "+max+" recommendations is "+avgGenerousScore+".");
+    total_score += avgCoreScore;
   }
 
   public static int containsId(List<AverageMovieRating> list, long id) {
