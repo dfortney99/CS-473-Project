@@ -26,7 +26,11 @@ public class MatrixBuilder {
 	
 	for(int i = 1; i-1 < number_ran; i++){
 		 System.out.println("	Testing User " + i*13*7);
+		System.out.println("--Core Evaluation--");
+
 		 evaluation(i*13*7, 20, 30);
+		System.out.println("--Novelty Evaluation--");
+
 		 noveltyEvaluation(i*13*7, 20, 30);   
 	}
 	System.out.println("--RESULTS--");
