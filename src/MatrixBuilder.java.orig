@@ -23,26 +23,28 @@ public class MatrixBuilder {
     initializeObjects();
     //List<Integer> result = calculateRecommendations(1, 20, 30);
  
-  total_score = 0;
-  total_generous_score = 0;
-  novelty_total_score = 0;
-  number_ran = 50;
-  novelty_skip = 0;
-  generous_skip = 0;
+ number_ran = 50;
+ novelty_skip = 0;
+ generous_skip = 0;
  
  for(int i = 1; i-1 < number_ran; i++){
-   System.out.println(" Testing User " + i*3*17 + " Test #" + i);
+   System.out.println(" Testing User " + i*3*17 + " Test #");
   System.out.println("--Core Evaluation--");
 
-   evaluation(i*3*17, 5, 30);
+   evaluation(i*3*17, 20, 30);
   System.out.println("--Novelty Evaluation--");
 
-   noveltyEvaluation(i*3*17, 5, 30);   
+   noveltyEvaluation(i*3*17, 20, 30);   
  }
  System.out.println("--RESULTS--");
- System.out.println("Average Score: " + total_score / number_ran + " on " + number_ran + " Users.");
- System.out.println("Average Generous Score: " + (total_generous_score/(number_ran-generous_skip)) + " on " + number_ran + " Users. "+generous_skip+" of those users don't count because there were no matched movies.");
- System.out.println("Average Novelty Score: " + (novelty_total_score / (number_ran-novelty_skip)) + " on " + number_ran  + " User. Skips " + novelty_skip);
+ System.out.println("Average Score: " + total_score / number_ran + " on " + number_ran + " Documents.");
+<<<<<<< Updated upstream
+ System.out.println("Average Generous Score: " + (total_generous_score/(number_ran-generous_skip)) + " on " + number_ran + " Documents. "+generous_skip+" of those documents don't count because there were no hits.");
+ System.out.println("Average Novelty Score: " + (novelty_total_score / (number_ran-novelty_skip)) + " on " + number_ran + " Documents. Skips " + novelty_skip);
+=======
+ System.out.println("Average Generous Score: " + (total_generous_score/(number_ran-generous_skip)) + " on " + number_ran + " Documents. "+generous_skip+" of those documents don't count due to no hits.");
+ System.out.println("Average Novelty Score: " + (novelty_total_score / number_ran) + " on " + number_ran + " Documents. Skips " + novelty_skip);
+>>>>>>> Stashed changes
 
   } 
   
@@ -162,9 +164,7 @@ public class MatrixBuilder {
     List<AverageMovieRating> coreResult = new ArrayList<AverageMovieRating>();
     int recommendedCount = 0;
     for (int i=0; recommendedCount<max; i++){
-		if(i >= ratedMovies.size())
-			break;
-	
+	if(i <= ratedMovies.size())
       if (ratedMovies.get(i).number_rated<3) continue; //If only 1 or 2 of the k nearest users has rated the movie, this is not enough to recommend it.
       coreResult.add(ratedMovies.get(i));
       recommendedCount++;
@@ -198,9 +198,9 @@ public class MatrixBuilder {
       SparseVector baseMovie = colMatrix.get(userVector.data.get(i).index); //the movie vector whose novelty score we're measuring
       for (int j=0; j<comparisonBase.size(); j++){        
 		
-		if(j <= comparisonBase.size()){
+		if(j <= comparisonBase.size())
         double score = baseMovie.distanceFrom(colMatrix.get(comparisonBase.get(j)));
-        runningScore+=score;}
+        runningScore+=score;
       }
       noveltyScores.addRating(userVector.data.get(i).index, runningScore/comparisonBase.size());
       //System.out.println("Movie "+userVector.data.get(i).index+" got a score of "+runningScore/comparisonBase.size()+". Rating "+userVector.data.get(i).value);
